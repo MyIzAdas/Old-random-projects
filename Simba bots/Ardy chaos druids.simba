@@ -1,0 +1,468 @@
+program Monster_killer;
+{$DEFINE SMART}
+{$DEFINE WALKER}
+{$i AeroLib/AeroLib.Simba}
+{$i Reflection/Reflection.simba}
+const
+//--------User setup--------
+ P_USERNAME     = 'bonjodancer@yandex.com';
+  P_PASSWORD     = 'kojine';
+  P_PIN          = '1234';
+  P_MEM          = 1; {0 false, 1 true}
+  FC_Name        = '1st Lady'; //Name of the fc your bots chat in
+//-------------End user setup----------
+
+var
+globFlag : integer;
+LocP : TReflectLocalPlayer;
+tim : timer;
+pnt : TPoint;
+RSW :TRSWalker;
+
+procedure FcBot;
+type
+greetings = array[0..10] of string;
+var
+list:greetings;
+begin
+list:=['/Hi!','/Hello!','/Hey!','/yo','/sup','/heya','/hayo','/hi','/hello','/hey','/h'];
+  SendKeys(list[random(10)],100,30);
+ typeByte(VK_ENTER);
+end;
+//finds out if the player is in FC and joins if he isn't
+procedure fcnoth;
+var
+ noth, X, Y:integer;
+
+ begin
+ gameTab(TAB_CLAN);
+ noth:= BitmapFromString(21, 9, 'meJyNkUsKgDAMRHMh3UhdFBE/CIp' +
+        'H9LAaOnWMrRRLKMmEl0/rp12O05obtqZbClb7mbfrV70FR/FwyjgN' +
+        'LA049DxlddsafoJjkVeFkOKOStkWGhIHiHVQnKW4oFVsinWSgtZhK' +
+        's75Rf3Bn773wJyWSo5bhy+DEHjVjsknqq8i9Pi8Ihe5tZAV');
+ If (FindBitmap(noth,X,Y)) then
+ begin
+ WriteLn('Not in fc');
+ gaussMouseBox(580, 450, 580+random(10), 450+random(10), mouse_Move);
+ FastClick(Mouse_Left);
+ SendKeys(FC_Name,100,30);
+ typeByte(VK_ENTER);
+ wait(RandomRange(150,320));
+ FcBot;
+ end
+ If (not FindBitmap(noth,X,Y)) then
+ Begin
+ WriteLn('in Fc');
+ FcBot;
+ wait(RandomRange(150,320));
+ end;
+ end;
+
+ procedure customMouse(point: TPoint);
+begin
+  case random(0, 6) of
+    0..2: BrakeMMouse(point, random(5), random(5), true);
+    3: BrakeMMouse(point, random(5), random(5), false);
+    4..5: MissMouse(point, random(5), random(5));
+    6: HumanMMouse(point, random(5), random(5));
+  end;
+end;
+
+procedure declarePlayer();
+begin
+  Me.Name := P_USERNAME;
+  Me.Pass := P_PASSWORD;
+   Me.Pin := P_PIN;
+  Me.Nick := '';
+  Me.Member := P_MEM;
+  Me.Active := True;
+end;
+
+procedure setupPlayer();
+begin
+  if not isLoggedIn() then
+    loginPlayer(false);
+  while not RSReady() do
+    SleepAndMoveMouse(100 + Random(500));
+  setAngle(ANGLE_HIGH);
+  setChat('hide',0);
+end;
+
+procedure setup();
+begin
+  mouseSpeed := Random(18, 25);
+  setupPlayer();
+end;
+
+procedure L_Click(upstr: string; upwait: integer)
+begin
+  if (waitUptext(upstr, upwait)) then
+  begin
+    sleep(20 + random(30));
+    FastClick(Mouse_Left);
+  end;
+end;
+
+procedure R_Click(upstr: string; upwait: integer; textstr: string; waiti: integer);
+begin
+  if (waitUptext(upstr, upwait)) then
+  begin
+    sleep(20 + random(30));
+    fastClick(MOUSE_RIGHT);
+    WaitOption(textstr, waiti);
+  end;
+end;
+
+procedure C_Click(upstr: string; upwait: integer; textstr: string; waiti: integer);
+begin
+  case random(15) of
+    0..14: L_Click(upstr, upwait);
+    15: R_Click(upstr, upwait, textstr, waiti);
+  end;
+end;
+
+function timedOut(inFunc: String): boolean;
+begin
+  Writeln('Timed out while doing ' + inFunc);
+  if isBankOpen() then closeInterface();
+
+end;
+
+procedure AntiBan;
+begin
+  tim.start;
+  case random(100) of
+    1: examineInv;
+    2: pickUpMouse();
+    3..4: hoverSkill('random', false);
+    5..7: randomTab(True);
+    8..10: randomRClick;
+    11..15: compassMovement(5, 15, false);
+    16..18: humanRandomMouse();
+    19..22: sleepAndMoveMouse(4000);
+    20..24: MMouseOffClient('random');
+    25..100: WriteLn('Antiban pass');
+  end;
+  if (tim.timeElapsed > 50000) then timedOut('antiban');
+end;
+procedure ChatClan;
+type
+ Smsg = array[0..99] of string;
+ Lmsg = array[0..29] of string;
+ var
+ i,n:integer;
+Slist:Smsg;
+Llist:Lmsg;
+begin
+Slist:=['/lol','/ok','/omg','/lulz','/k','/k...','/ok...','/wat','/wat..','/what?','/wut?','/u wot bro?','/what a noob','/noob','/omg','/omg...','/u stupid m8','/why...','/whyy?','/wtf','/wtf..?','/omg, no way','/say what','/whats wrong with u','/u dumb','/why would u say that','/l0l','/looooool','/wat -_-','/:>','/:)','/:|','/:(','/:D','/why tho','/kys','/idiot','/n00b','/nerd','/n3rd','/what a nerd','/ima get u boi','/=_=','/-_-','/*_*','/dude...','/dood...','/d00d...','/u wot m8?','/lolololollo','/troll','/troll...','/ha','/hahaha','/ahahahhahhahaha','/oh boy','/jajajajjajaj','/just dont.','/dont.','/dont start','/dont u start','/whatever you say...','/ull get pwnd lol','/lmao','/rofl','/...','/huh','/gg','/get gud','/get good','/heres l 4u','/take this l','/lies','/why u lie','/do u even','/ima tell ur mom','/whatever','/watevs','/u good?','/gl','/good luck','/bs','/','/fuck you','/fuck this','/get back to ur bed','/nothing to see here -_-','/:0','/:o','/nub','/l','/sick','/gtfo','/gto','/fu','/u mad','/m888888888','/calm m9','/calm y0 a55','/m8...'];
+Llist:=['/my face is inside of ass','/ima buy a whip!','/i have maxed account','/lool, Zezima just texted me','/thinking about totaly nolifing till 99 wc or whatever other skill','/1v1 me in wildy noobs','/buying gf!!! 10gp!!','/this fuckinbg guy has 99 rc!! wtf?!','/Zulrah is shit money, id rather collect ashes','/Can anyone come to me? i am stuck between the lvl 50 spiders :(','/just saw a guy getting pked in 1hit, wtf','/Selling my virginity 5k!','/Selling red bead 1487 coins!','/My penis is shaped like a pickaxe','/you cunts will never see a pussy with dis game','/Dude, this guy has a full fucking sara :O','/Sum guy has a fkin Ags over her omg','/Just graduated from the tutorial island motherfuckers!','/Can you smoke weed in this game','/just got 1.7mil from sum guy, im rich bitches!','/Jus thiking about leaving this shit clan 4 for sum gold','/trimming armour for bjs!','/mofos im high as fuck and still have few joints','/this hacker says give me ur bank, what do i do? :(','/omg just found a gf omgomgomg!','/ur mom is like al kharid gates, only 10gp to enter lolol','/ur mom got enough chins to get 99 range lollolo','/frogs do not need my help right now :(','/how do i dab in rs','/ima destroy all of ur moms pussies madafakaz'];
+WriteLn('ChatClan is working');
+  i:=random(100);
+  n:=random(10);
+  if (i=1)and(n<=7) then
+  begin
+  SendKeys(Slist[random(99)],100,30);
+ typeByte(VK_ENTER);
+ end;
+   if (i=1)and(n>7) then
+  begin
+  SendKeys(Llist[random(29)],100,30);
+ typeByte(VK_ENTER);
+ end;
+end;
+
+//Opens bank and deposits everything from inv
+Procedure Bank;
+var
+  Bank : TReflectObject;
+  BankNPC : TReflectNPC;
+begin
+  tim.start;
+
+  repeat // Until bank is open
+  begin
+    case random(10) of
+    0..9:
+      begin
+        if Bank.Find(objGame, 'Bank booth', 10) then
+        begin
+          Bank.Find(objGame, 'Bank booth', 10);
+          Reflect.Mouse.Move(Bank.GetMSPoint, 5, 5);
+          C_Click('ooth', 250, 'ank Bank', 300);
+        end;
+
+        if not (Bank.Find(objGame, 'Bank booth', 10)) then
+        begin
+          Writeln('Bank booth not found');
+          compassMovement(20, 40, false);
+          globFlag+=1;
+          exit();
+        end;
+      end;
+    10:
+      begin
+        if BankNPC.Find('Banker') then
+        begin
+          BankNPC.Find('Banker');
+          Reflect.Mouse.Move(BankNPC.GetMSPoint, 3, 3);
+          R_Click('anker', 250, 'ank Bank', 300);
+        end;
+
+        if not BankNPC.Find('Banker') then
+        begin
+          Writeln('Banker not found');
+          compassMovement(20, 40, false);
+          globFlag+=1;
+          exit();
+        end;
+      end;
+    end;
+  end;
+  Wait(randomrange(200,300));
+ quickDeposit('inv');
+  if Reflect.Bank.IsPinOpen then TReflectionBank.EnterPin(P_PIN);
+  wait(randomRange(500, 750));
+  if (tim.timeElapsed > 30000) then compassMovement(20, 40, false);
+  if not isLoggedIn() then setupPlayer();
+  until(isBankOpen());
+  CloseInterface;
+end;
+
+procedure GetDoorTile;
+  var
+  i:integer;
+  _objects : TReflectObjectArray;
+begin
+_objects.GetAll(objBoundary, 20);
+      for i:=0 to high(_objects) do begin
+      if _objects[i].GetId=11723 then
+      begin
+      Writeln('ID: ',i);
+      Reflect.Mouse.Move(_objects[i].GetMSPoint, 3, 3);
+      compassMovement(10, 15, false);
+       end;
+        end;
+end;
+
+//goes from druids to bank
+Procedure DruidTBank;
+var
+  toBankPath: TPointArray;
+  chat: TReflectionChat;
+  monster:TReflectNPC;
+begin
+repeat
+WriteLn('Opening druid doors to go to the bank.');
+GetDoorTile;
+R_Click('Door', 250, 'Open', 300);
+if not monster.Find('Chaos druid') then break;
+until chat.Find('You go through the door.');
+RSW.anyAngle  := True;  //`True` if you are not walking with compass facing north
+RSW.skipClose := 15;
+toBankPath := [
+Point(128, 159),
+Point(149, 162),
+Point(171, 176),
+Point(195, 175),
+Point(191, 138),
+Point(198, 104),
+Point(241, 109),
+Point(281, 108),
+Point(313, 131),
+Point(320, 171),
+Point(321, 220),
+Point(331, 253)
+];
+RSW.WalkPath(toBankPath);
+end;
+
+//drop list
+procedure drops;
+type
+drops = array[0..11] of string;
+var
+list:drops;
+begin
+list:=['Grimy avantoe','Grimy irit leaf','Grimy kwuarm','Grimy ranarr weed','Grimy lantadyme','Grimy dwarf weed','Grimy cadantine','Ensouled chaos druid head','Grimy harralander','Law rune','Nature rune','Mithril bolts']; //'Grimy harralander','Law rune','Nature rune','Mithril bolts'
+waitOptionMulti(list,100)
+end;
+
+//collect drops
+procedure collecting;
+ var
+ Starttime, endtime : integer;
+  _gitems : TReflectGroundItemArray;
+ i:integer;
+begin
+Writeln('Executing drop collector');
+_gitems.GetAll(20);
+for i:=0 to high(_gitems) do begin
+    Reflect.Mouse.Move(_gitems[i].GetMSPoint, 3, 3);
+     sleep(20 + random(30));
+  fastClick(MOUSE_RIGHT);
+  drops;
+end;
+end;
+
+//attacks monster
+procedure attack;
+type
+drops = array[0..10] of string;
+ var
+ list:drops;
+ monster:TReflectNPC;
+ chat: TReflectionChat;
+ Obj: TReflectObject;
+ myAnimation,i,n: integer;
+ inventory : TreflectInvItem;
+ begin
+ list:=['Grimy guam leaf','Grimy marrentill','Grimy tarromin','Air rune','Earth rune','Body rune','Mind rune','Bronze longsword','Vial of water','Coins','Snape grass'];             //'Grimy harralander','Law rune','Nature rune','Mithril bolts'
+ if inventory.Find('Bones') then  begin           //If accidentaly picks up bones, buries it
+ Reflect.Mouse.Move(inventory.GetMSPoint, 3, 3);
+   FastClick(Mouse_Left);
+   end;
+   begin;                          //Drops junk that picked up with missclick
+   for i:=0 to high(list) do begin
+   if inventory.Find(list[i]) then
+   inventory.Drop;
+   end;
+   end;
+ myAnimation := LocP.GetAnimation;
+ WriteLn('Animation: ',myAnimation);
+ if chat.Find('The door is locked.') then repeat
+WriteLn('Opening druid doors to reach Druids.');
+GetDoorTile;
+R_Click('Door', 250, 'Pick-lock', 300);
+if chat.Find('The door is already unlocked.') then break;
+until chat.Find('You manage to pick the lock.');
+
+if chat.Find('reach that!') then repeat
+WriteLn('Opening druid doors to reach Druids.');
+GetDoorTile;
+R_Click('Door', 250, 'Pick-lock', 300);
+if chat.Find('The door is already unlocked.') then break;
+until chat.Find('You manage to pick the lock.');
+
+ if myAnimation =-1 or myAnimation =828 then
+ begin
+ monster.Find('Chaos druid');
+ Reflect.Mouse.Move(monster.GetMSPoint, 3, 3);
+ FastClick(Mouse_Left);
+ Wait(random(100));
+ i:=random(10);
+ if i<4 then begin
+ collecting;
+ end;
+  ChatClan;
+ AntiBan;
+ if myAnimation=828 then
+ WriteLn('Getting animation 828, wtf is it?');
+ end;
+  if  chat.Find('already under attack.') then  begin
+ wait(3500+random(500));
+ WriteLn('Still under attack');
+ end;
+ end;
+
+Procedure BankTDruid;
+var
+toDruidPath: TPointArray;
+chat: TReflectionChat;
+  monster:TReflectNPC;
+begin
+WriteLn('Going to druids');
+RSW.anyAngle  := True;  //`True` if you are not walking with compass facing north
+RSW.skipClose := 15;
+toDruidPath := [
+Point(331, 253),
+Point(321, 220),
+Point(320, 171),
+Point(313, 131),
+Point(281, 108),
+Point(241, 109),
+Point(198, 104),
+Point(191, 138),
+Point(195, 175),
+Point(171, 176),
+Point(149, 162),
+Point(128, 159)
+];
+RSW.WalkPath(toDruidPath);
+repeat
+GetDoorTile;
+FastClick(Mouse_Left);
+if chat.Find('The door is already unlocked.') then break;
+until chat.Find('The door is locked.');
+end;
+
+procedure MissCFix;
+var
+ Obj: TReflectObject;
+ monster:TReflectNPC;
+begin
+if monster.Find('Giant bat') then begin
+ Obj.Find(objGame, 'Ladder', 10);
+ Reflect.Mouse.Move(Obj.GetMSPoint, 3, 3);
+ R_Click('Ladder', 250, 'limb-u', 300);
+ end else
+ Writeln('Someting wrong with MissCFix!')
+end;
+
+// Finds what step of the program you are on
+function getState(): Integer;
+var
+  inventory : TreflectInvItem;
+  monster:TReflectNPC;
+  Bank,Obj: TReflectObject;
+  _objects : TReflectObjectArray;
+  i:integer;
+begin
+  if not isLoggedIn() then
+    exit(0);
+   if isInvFull() and monster.Find('Chaos druid') then
+   exit (1);
+   if isInvFull() and Bank.Find(objGame, 'Bank booth', 10) then
+   exit (2);
+   if not IsInvFull() and  Bank.Find(objGame, 'Bank booth', 10) then
+   exit (3);
+   if not IsInvFull() and monster.find('Chaos druid') then
+   exit (4);
+   if monster.Find('Giant bat') then
+   exit (5);
+   if Obj.Find(objGame,'Table',10) and not monster.Find('Chaos druid') then begin//
+     Obj.Find(objGame, 'Ladder', 10);
+ Reflect.Mouse.Move(Obj.GetMSPoint, 3, 3);
+ FastClick(Mouse_Left);                        //
+    end;
+   if (tim.timeElapsed > 8000) and IsInvFull() then
+   exit (1);
+    if (tim.timeElapsed > 8000) then compassMovement(10, 15, false);
+end;
+// Fetches what step you are on from getState() then executes
+procedure executeState(State: Integer);
+begin
+  case (State) of
+    0: setupPlayer();
+    1: DruidTBank;
+    2: Bank;
+    3: BankTDruid;
+    4: Attack;
+    5: MissCFix;
+  end;
+  sleep(Random(100, 200));
+end;
+
+begin
+
+  declarePlayer();
+  InitAL();
+  Reflect.Setup;
+  setup();
+  locp.Create();
+  RSW.Init('druidbank.png');
+  fcnoth;
+  repeat
+    executeState(getState());
+
+  until (false);
+end.
